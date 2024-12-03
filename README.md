@@ -1,4 +1,4 @@
-# Check out @ [IoT Quiz Practice Web App](https://yourdeployedapp.com)  
+# Check out @ [IoT Quiz Practice Web App](https://rahulkumar2112k.github.io/IOT-QUIZ-PRACTICE-WEB/)  
 # IoT Quiz Practice Web App
 
 An interactive web application for practicing IoT-related quizzes, built using HTML, CSS, and JavaScript.
