@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Quiz Practice</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #e1e3e8;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #3d9123;
+            padding: 15px;
+            color: rgb(255, 255, 255);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .navbar h1 {
+            font-size: 24px;
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;  /* Center the title */
+        }
+
+        .navbar button {
+            padding: 10px;
+            background: #1b0e06;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            border-radius: 5px;
+        }
+
+        .navbar button:hover {
+            background: #152389;
+        }
+
+        /* Sidebar (Select Quiz Section) */
+        .sidebar {
+            position: absolute;
+            top: 80px;  /* Move it down below the navbar */
+            left: 0;
+            width: 250px;
+            background: #0c907a; /* Changed color */
+            color: white;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            height: calc(100vh - 80px);  /* Adjust height to avoid overlap with navbar */
+            transform: translateX(-250px); /* Hidden by default */
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.active {
+            transform: translateX(0); /* Slide in when active */
+        }
+
+        /* Sidebar Title */
+        .sidebar h2 {
+            font-size: 20px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .sidebar button {
+            margin-bottom: 10px;
+            width: 100%;
+            background: #594279;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .sidebar button:hover {
+            background: #162475;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #121212;
+            border-radius: 10px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            margin-top: 20px; /* Space for the navbar */
+        }
+
+        /* Quiz Styling */
+        .quiz-container {
+            background: rgb(252, 252, 252);
+            border-radius: 10px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .options label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 5px;
+            background: #f3f4f6;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .options input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .options input[type="radio"]:checked + span {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .options input[type="radio"]:checked {
+            border-color: #4CAF50;
+        }
+
+        .options label.selected {
+            border-color: #4CAF50;
+            background: #e7f7e9;
+        }
+
+        .correct {
+            background: #d4edda !important;
+            color: #155724;
+        }
+
+        .wrong {
+            background: #f8d7da !important;
+            color: #721c24;
+        }
+
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .feedback.wrong {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin: 20px 5px 0;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #45a049;
+        }
+
+        .btn.reset {
+            background: #d9534f;
+        }
+
+        .btn.reset:hover {
+            background: #c9302c;
+        }
+
+        /* Media Query for Smaller Screens (Mobile) */
+        @media (max-width: 768px) {
+            .navbar h1 {
+                font-size: 20px;  /* Reduce font size for smaller screens */
+            }
+
+            .sidebar {
+                width: 200px;  /* Smaller sidebar for mobile */
+            }
+
+            .sidebar h2 {
+                font-size: 18px; /* Smaller heading for mobile */
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 10px; /* Smaller padding for mobile */
+            }
+
+            .quiz-container {
+                padding: 10px; /* Smaller quiz container padding */
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .navbar button {
+                font-size: 14px;  /* Smaller button size on mobile */
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <button id="menu-toggle" onclick="toggleMenu()">☰</button>
+        <h1>NPTEL QUIZ PRACTICE FOR IOT 📝 </h1>
+    </div>
+
+    <!-- Sidebar (Select Quiz Section) -->
+    
+<div class="sidebar" id="sidebar">
+    <h2>Select Quiz 👇</h2>
+    <button onclick="loadQuiz('quiz1')">Quiz-1</button>
+    <button onclick="loadQuiz('quiz2')">Quiz-2</button>
+    <button onclick="loadQuiz('quiz3')">Quiz-3</button>
+    <button onclick="loadQuiz('quiz4')">Quiz-4</button>
+    <button onclick="loadQuiz('nptel')">NPTEL Assignment (1-3)</button>
+    <h3>Made by Rahul ❤️</h3>
+    
+    <!-- Social Media Links -->
+    <div class="social-icons" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+        <!-- Instagram -->
+        <a href="https://www.instagram.com/only__rahul_/" target="_blank" 
+           style="text-decoration: none; font-size: 24px; color: #E4405F;">
+            <i class="fab fa-instagram"></i>
+        </a>
+        <!-- LinkedIn -->
+        <a href="https://www.linkedin.com/in/rahul-kumar-17a277259/" target="_blank" 
+           style="text-decoration: none; font-size: 24px; color: #0a01bc;">
+            <i class="fab fa-linkedin"></i>
+        </a>
+    </div>
+</div>
+
+
+    <!-- Main Content Area -->
+    <div class="main-content" id="main-content">
+        <div class="quiz-container">
+            <h1 id="quiz-title">Select quiz from the menu </h1> <!-- Default text for selecting quiz -->
+            <div id="quiz-content"></div>
+            <div style="text-align: center;">
+                <button class="btn" id="submit" style="display: none;" onclick="submitQuiz()">Submit</button>
+                <button class="btn reset" id="reset" style="display: none;" onclick="resetQuiz()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizzes = {
+            quiz1: [
+    
+            {
+                question: "Who coined the term 'Internet of Things'?",
+                options: ["Tim Berners-Lee", "Kevin Ashton", "Steve Jobs", "Bill Gates"],
+                answer: "Kevin Ashton",
+                explanation: "Kevin Ashton coined the term 'Internet of Things' in 1999 while working on supply chain optimization at Procter & Gamble."
+            },
+            {
+                question: "What year was the first patent for an RFID tag received?",
+                options: ["1963", "1973", "1983", "1993"],
+                answer: "1973",
+                explanation: "The first patent for RFID (Radio-Frequency Identification) tags was granted in 1973 to Mario Cardullo."
+            },
+            {
+                question: "Which device was an early example of connected objects in the 1980s?",
+                options: ["Microwave Oven", "Coffee Maker", "Coke Vending Machine", "Digital Clock"],
+                answer: "Coke Vending Machine",
+                explanation: "The Coke vending machine at Carnegie Mellon University was one of the first internet-connected devices."
+            },
+            {
+                question: "What technology did the Auto ID Centre at MIT use to connect objects?",
+                options: ["Bluetooth", "WiFi", "RFID technology", "Zigbee"],
+                answer: "RFID technology",
+                explanation: "The Auto-ID Center at MIT used RFID technology to connect objects."
+            },
+            {
+                question: "In which year did major publications highlight the potential of IoT in home automation and healthcare?",
+                options: ["2000", "2004", "2008", "2012"],
+                answer: "2008",
+                explanation: "In 2008, major publications like 'Wired' and 'The Economist' highlighted the potential of IoT in various sectors like home automation and healthcare."
+            },
+            {
+                question: "Who invented the barcode and in what year?",
+                options: ["Norman Joseph Woodland in 1945", "Alan Turing in 1955", "Tim Berners-Lee in 1965", "Steve Jobs in 1975"],
+                answer: "Norman Joseph Woodland in 1945",
+                explanation: "Norman Joseph Woodland invented the barcode in 1945. It was later commercialized in the 1970s."
+            },
+            {
+                question: "What does a sensor do?",
+                options: ["It converts electrical signals into physical actions.", "It senses and measures physical quantities and converts them into digital values.", "It stores data in the cloud.", "It processes data into meaningful information."],
+                answer: "It senses and measures physical quantities and converts them into digital values.",
+                explanation: "A sensor measures physical quantities such as temperature, pressure, or light, and converts them into digital values that can be processed."
+            },
+            {
+                question: "What does an actuator do?",
+                options: ["It senses environmental changes.", "It transmits data over a network.", "It receives control signals and performs physical actions.", "It stores digital values."],
+                answer: "It receives control signals and performs physical actions.",
+                explanation: "An actuator receives control signals from a system and performs a physical action, such as moving a motor or opening a valve."
+            },
+            {
+                question: "Give an example of a position sensor.",
+                options: ["Thermometer", "Proximity sensor", "Barometer", "Hygrometer"],
+                answer: "Proximity sensor",
+                explanation: "A proximity sensor detects the presence of nearby objects, and it can be used as a position sensor to determine the location of an object."
+            },
+            {
+                question: "What type of sensor detects the presence of people or animals?",
+                options: ["Light sensor", "Pressure sensor", "Occupancy sensor", "Temperature sensor"],
+                answer: "Occupancy sensor",
+                explanation: "An occupancy sensor detects the presence of people or animals within a certain area, typically using infrared or ultrasonic technology."
+            },
+            {
+                question: "Which sensor measures how fast an object moves or rotates?",
+                options: ["Humidity sensor", "Pressure sensor", "Velocity sensor", "Biosensor"],
+                answer: "Velocity sensor",
+                explanation: "A velocity sensor measures the speed of an object, either in linear or rotational motion."
+            },
+            {
+                question: "What sensor type measures the force applied by liquids or gases?",
+                options: ["Pressure sensor", "Proximity sensor", "Light sensor", "Temperature sensor"],
+                answer: "Pressure sensor",
+                explanation: "A pressure sensor measures the force applied by liquids or gases on a surface."
+            },
+            {
+                question: "Give an example of a biosensor.",
+                options: ["Accelerometer", "Blood glucose biosensor", "Proximity sensor", "Light sensor"],
+                answer: "Blood glucose biosensor",
+                explanation: "A blood glucose biosensor is a device used to measure the level of glucose in the blood, commonly used by diabetics."
+            },
+            {
+                question: "What type of actuator uses fluid pressure to create movement?",
+                options: ["Electrical actuator", "Mechanical actuator", "Hydraulic actuator", "Electromagnetic actuator"],
+                answer: "Hydraulic actuator",
+                explanation: "A hydraulic actuator uses fluid pressure to generate movement, commonly used in heavy machinery."
+            },
+            {
+                question: "What type of actuator is used in electric recliners to adjust the angle?",
+                options: ["Rotary actuator", "Linear actuator", "Hydraulic actuator", "Pneumatic actuator"],
+                answer: "Linear actuator",
+                explanation: "A linear actuator is used in electric recliners to adjust the seat angle by moving along a straight line."
+            },
+            {
+                question: "What type of actuator is used in automatic door openers?",
+                options: ["Mechanical actuator", "Linear actuator", "Electromechanical actuator", "Rotary actuator"],
+                answer: "Electromechanical actuator",
+                explanation: "An electromechanical actuator uses both mechanical components and electrical power to operate automatic door openers."
+            },
+            {
+                question: "How many layers are there in the IoT architecture?",
+                options: ["Three", "Four", "Five", "Six"],
+                answer: "Four",
+                explanation: "The IoT architecture typically consists of four layers: Sensing Layer, Network Layer, Processing Layer, and Application Layer."
+            },
+            {
+                question: "What is the first layer of IoT architecture?",
+                options: ["Network Layer", "Application Layer", "Sensing Layer", "Application Service Layer"],
+                answer: "Sensing Layer",
+                explanation: "The Sensing Layer is the first layer of the IoT architecture, which involves the collection of data from physical objects using sensors."
+            },
+            {
+                question: "Which layer handles data analytics and streaming analytics?",
+                options: ["Application Support Layer", "Network Layer", "Sensing Layer", "Application Service Layer"],
+                answer: "Application Support Layer",
+                explanation: "The Application Support Layer handles data analytics, including real-time processing and streaming analytics, to process sensor data."
+            },
+            {
+                question: "Which layer interconnects the real and physical world?",
+                options: ["Sensing Layer", "Application Service Layer", "Network Layer", "Application Layer"],
+                answer: "Sensing Layer",
+                explanation: "The Sensing Layer bridges the physical and digital worlds by collecting and transmitting real-time data from sensors."
+            },
+            {
+                question: "Which layer provides robust and high-performance network infrastructure?",
+                options: ["Network Layer", "Sensing Layer", "Application Service Layer", "Application Layer"],
+                answer: "Network Layer",
+                explanation: "The Network Layer is responsible for providing the communication infrastructure needed to connect devices and transmit data."
+            },
+            {
+                question: "Name a device found in the Sensing Layer.",
+                options: ["Microcontroller", "Router", "GPS", "Switch"],
+                answer: "GPS",
+                explanation: "A GPS device is part of the Sensing Layer and provides location data to the IoT system."
+            },
+            {
+                question: "What type of sensor is used in street lights to detect ambient light?",
+                options: ["IR sensor", "Ultrasonic sensor", "LDR sensor", "Proximity sensor"],
+                answer: "LDR sensor",
+                explanation: "An LDR (Light Dependent Resistor) sensor detects changes in light levels and is commonly used in street lighting systems."
+            },
+            {
+                question: "Which sensor is used in TV remote controls?",
+                options: ["Proximity sensor", "Ultrasonic sensor", "IR sensor", "Pressure sensor"],
+                answer: "IR sensor",
+                explanation: "An IR (Infrared) sensor is used in TV remote controls to send signals to the TV via infrared light."
+            },
+            {
+                question: "What type of sensor is used in smartphones to turn off the screen when you hold it to your ear?",
+                options: ["Pressure sensor", "Proximity sensor", "Humidity sensor", "Temperature sensor"],
+                answer: "Proximity sensor",
+                explanation: "A proximity sensor detects the presence of objects nearby, such as your ear when holding the phone, to turn off the screen."
+            },
+            {
+                question: "What type of sensor is used in car parking assistance systems?",
+                options: ["Ultrasonic sensor", "Light sensor", "Temperature sensor", "IR sensor"],
+                answer: "Ultrasonic sensor",
+                explanation: "Ultrasonic sensors are commonly used in parking assistance systems to detect objects near the car using sound waves."
+            },
+            {
+                question: "What type of actuator is used in car repair shop lifts?",
+                options: ["Electromechanical actuator", "Hydraulic actuator", "Pneumatic actuator", "Mechanical actuator"],
+                answer: "Hydraulic actuator",
+                explanation: "Hydraulic actuators are used in car repair shop lifts because they can lift heavy loads efficiently using fluid pressure."
+            },
+            {
+                question: "What type of actuator is used in trucks and buses for air brakes?",
+                options: ["Hydraulic actuator", "Pneumatic actuator", "Electromechanical actuator", "Mechanical actuator"],
+                answer: "Pneumatic actuator",
+                explanation: "Pneumatic actuators are used in air brake systems in trucks and buses because they use compressed air to operate."
+            },
+            {
+                question: "What does IPv6 stand for?",
+                options: ["Internet Protocol version 5", "Internet Protocol version 6", "Internet Protocol version 7", "Internet Protocol version 8"],
+                answer: "Internet Protocol version 6",
+                explanation: "IPv6 stands for Internet Protocol version 6, which is the most recent version of the Internet Protocol (IP) used to identify and locate computers on networks."
+            },
+            {
+                question: "Why is IPv6 important for IoT?",
+                options: ["It provides a larger address space.", "It uses less power.", "It is faster than IPv4.", "It is more secure."],
+                answer: "It provides a larger address space.",
+                explanation: "IPv6 is important for IoT because it provides a much larger address space, allowing billions of devices to be connected to the internet."
+            },
+            {
+                question: "Which IoT application uses sensors to monitor soil moisture and optimize irrigation?",
+                options: ["Smart City", "Smart Home", "Smart Agriculture", "Smart Health"],
+                answer: "Smart Agriculture",
+                explanation: "Smart Agriculture uses sensors to monitor environmental factors such as soil moisture, and optimize irrigation to improve crop yields and reduce water waste."
+            },
+            {
+                question: "What type of actuator is used in automated window blinds?",
+                options: ["Hydraulic actuator", "Pneumatic actuator", "Electromechanical actuator", "Mechanical actuator"],
+                answer: "Electromechanical actuator",
+                explanation: "Electromechanical actuators are used in automated window blinds to adjust the position of the blinds based on input from sensors or controllers."
+            },
+            {
+                question: "Which IoT device can help monitor and manage energy consumption in a household?",
+                options: ["Smart Meter", "Smart Bulb", "Smart Refrigerator", "Smart Camera"],
+                answer: "Smart Meter",
+                explanation: "A Smart Meter is an IoT device used to monitor and manage energy consumption in households, providing real-time usage data to users and utility companies."
+            },
+            {
+                question: "Which type of sensor is used in smart irrigation systems to detect soil moisture levels?",
+                options: ["Temperature sensor", "Proximity sensor", "Soil moisture sensor", "Humidity sensor"],
+                answer: "Soil moisture sensor",
+                explanation: "Soil moisture sensors are used in smart irrigation systems to detect moisture levels in the soil and trigger irrigation when necessary."
+            },
+            {
+                question: "What kind of IoT application involves using sensors to monitor health parameters like heart rate and blood pressure?",
+                options: ["Smart Agriculture", "Smart City", "Smart Health", "Smart Grid"],
+                answer: "Smart Health",
+                explanation: "Smart Health uses IoT devices like sensors to monitor and track health parameters such as heart rate, blood pressure, and glucose levels."
+            },
+            {
+                question: "Which sensor would be used in an automatic door system to detect people approaching?",
+                options: ["Pressure sensor", "Proximity sensor", "Temperature sensor", "Light sensor"],
+                answer: "Proximity sensor",
+                explanation: "A proximity sensor is used in automatic door systems to detect when a person is approaching and trigger the door to open."
+            },
+            {
+                question: "Which protocol is often used to secure IoT device communication?",
+                options: ["HTTP", "FTP", "TLS", "DNS"],
+                answer: "TLS",
+                explanation: "TLS (Transport Layer Security) is commonly used to secure communication between IoT devices by encrypting data transmission."
+            },
+            {
+                question: "What is the primary concern regarding IoT device security?",
+                options: ["Power consumption", "Data privacy", "Device size", "Device cost"],
+                answer: "Data privacy",
+                explanation: "The primary concern regarding IoT device security is data privacy, as IoT devices collect and transmit sensitive personal data."
+            },
+            {
+                question: "Which technology is commonly used to protect data transmitted between IoT devices?",
+                options: ["Encryption", "Compression", "Amplification", "Modulation"],
+                answer: "Encryption",
+                explanation: "Encryption is commonly used to protect data transmitted between IoT devices, ensuring that it remains secure and unreadable by unauthorized parties."
+            },
+            {
+                question: "What kind of attack involves an unauthorized entity gaining control of an IoT device?",
+                options: ["Phishing attack", "Man-in-the-middle attack", "Spoofing attack", "Hijacking attack"],
+                answer: "Hijacking attack",
+                explanation: "A hijacking attack occurs when an unauthorized entity gains control of an IoT device and uses it for malicious purposes."
+            },
+            {
+                question: "Which security measure is essential for ensuring the authenticity of IoT devices?",
+                options: ["Encryption", "Authentication", "Data compression", "Signal amplification"],
+                answer: "Authentication",
+                explanation: "Authentication ensures the authenticity of IoT devices by verifying their identity, preventing unauthorized devices from connecting to the network."
+            },
+            {
+                question: "Which method is often used to ensure data integrity in IoT systems?",
+                options: ["Hashing", "Data redundancy", "Signal modulation", "Data compression"],
+                answer: "Hashing",
+                explanation: "Hashing is often used in IoT systems to ensure data integrity by creating unique digital signatures for transmitted data to detect tampering."
+            },
+            {
+                question: "Which IoT application uses sensors to monitor and manage city infrastructure?",
+                options: ["Smart Grid", "Smart City", "Smart Home", "Smart Health"],
+                answer: "Smart City",
+                explanation: "Smart City applications use IoT sensors to monitor and manage various city infrastructures, such as traffic, waste management, and street lighting."
+            },
+            {
+                question: "In a smart home, which device is commonly used to automate lighting?",
+                options: ["Light Bulb", "Smart Thermostat", "Smart Switch", "Motion Sensor"],
+                answer: "Smart Switch",
+                explanation: "A Smart Switch is commonly used in smart homes to automate lighting and control other electrical devices remotely."
+            },
+            {
+                question: "What type of sensor would be used in a smart thermostat to detect temperature?",
+                options: ["Pressure sensor", "Humidity sensor", "Temperature sensor", "Light sensor"],
+                answer: "Temperature sensor",
+                explanation: "A temperature sensor is used in smart thermostats to detect the current temperature and adjust the heating or cooling accordingly."
+            },
+            {
+                question: "Which IoT application involves tracking the location and movement of goods?",
+                options: ["Smart Health", "Smart Grid", "Smart Agriculture", "Supply Chain Management"],
+                answer: "Supply Chain Management",
+                explanation: "Supply Chain Management uses IoT devices such as GPS trackers to monitor the location and movement of goods in transit."
+            },
+            {
+                question: "What type of sensor is used in wearable fitness trackers to measure steps?",
+                options: ["Light sensor", "Proximity sensor", "Accelerometer", "Temperature sensor"],
+                answer: "Accelerometer",
+                explanation: "An accelerometer is used in wearable fitness trackers to measure movement and detect the number of steps taken by the wearer."
+            }
+            ],
+        
+            quiz2: [
+            {
+                question: "What does CoAP stand for?",
+                options: ["Common Application Protocol", "Constrained Application Protocol", "Coherent Application Protocol", "Connected Application Protocol"],
+                answer: "Constrained Application Protocol",
+                explanation: "CoAP stands for Constrained Application Protocol, a lightweight protocol used for IoT devices with limited resources."
+            },
+            {
+                question: "What is the main advantage of CoAP over HTTP in IoT?",
+                options: ["Larger header size", "Smaller header size", "Higher bandwidth usage", "Lower latency"],
+                answer: "Smaller header size",
+                explanation: "CoAP has a smaller header size compared to HTTP, making it more suitable for low-bandwidth and resource-constrained IoT devices."
+            },
+            {
+                question: "What does the MAC layer in IEEE 802.15.4 standardize?",
+                options: ["Physical layer", "Application layer", "Link layer", "Network layer"],
+                answer: "Link layer",
+                explanation: "The MAC layer in IEEE 802.15.4 standardizes how data is transferred over the network, focusing on access to the physical medium."
+            },
+            {
+                question: "Which type of networks does IEEE 802.15.4 MAC focus on?",
+                options: ["High bandwidth networks", "Constrained environment networks", "Long-range communication networks", "Satellite communication networks"],
+                answer: "Constrained environment networks",
+                explanation: "IEEE 802.15.4 is optimized for low data rate, low power consumption, and short-range communication, ideal for constrained environments."
+            },
+            {
+                question: "What is the maximum frame length in IEEE 802.15.4 PHY?",
+                options: ["127 bytes", "1280 bytes", "576 bytes", "250 kbps"],
+                answer: "127 bytes",
+                explanation: "The maximum frame length in IEEE 802.15.4 PHY is 127 bytes, which is the standard size for the frames transmitted."
+            },
+            {
+                question: "What is the typical throughput of IEEE 802.15.4 PHY?",
+                options: ["1 Gbps", "10 Mbps", "250 kbps", "100 kbps"],
+                answer: "250 kbps",
+                explanation: "The typical throughput of IEEE 802.15.4 PHY is 250 kbps, suitable for IoT devices with low throughput requirements."
+            },
+            {
+                question: "What does RPL stand for in the context of IPv6?",
+                options: ["Routing Protocol for Low-Power and Lossy Networks", "Routing Protocol for Local Networks", "Robust Protocol Layer", "Redundant Path Layer"],
+                answer: "Routing Protocol for Low-Power and Lossy Networks",
+                explanation: "RPL (Routing Protocol for Low-Power and Lossy Networks) is designed for routing in networks with limited power and unreliable communication."
+            },
+            {
+                question: "Which RFC defines RPL?",
+                options: ["RFC 6282", "RFC 6550", "RFC 1234", "RFC 5678"],
+                answer: "RFC 6550",
+                explanation: "RPL is defined in RFC 6550, which provides the specification for the routing protocol used in low-power networks."
+            },
+            {
+                question: "What does 6LoWPAN stand for?",
+                options: ["IPv6 over Low Power Wide Area Network", "IPv6 over Low Power Wireless Personal Area Network", "IPv6 over Local Power Wireless Personal Area Network", "IPv6 over Limited Power Wireless Personal Area Network"],
+                answer: "IPv6 over Low Power Wireless Personal Area Network",
+                explanation: "6LoWPAN (IPv6 over Low Power Wireless Personal Area Network) enables IPv6 packets to be transmitted over low-power wireless networks like IEEE 802.15.4."
+            },
+            {
+                question: "What is the main function of 6LoWPAN?",
+                options: ["Increase data throughput", "Reduce packet size for transmission", "Enhance security protocols", "Provide long-range communication"],
+                answer: "Reduce packet size for transmission",
+                explanation: "6LoWPAN reduces the size of IPv6 packets to make them suitable for transmission over low-power wireless networks."
+            },
+            {
+                question: "What does UDP stand for?",
+                options: ["User Data Protocol", "User Datagram Protocol", "Unified Data Protocol", "Universal Datagram Protocol"],
+                answer: "User Datagram Protocol",
+                explanation: "UDP (User Datagram Protocol) is a connectionless communication protocol commonly used for time-sensitive transmissions like video playback and DNS lookups."
+            },
+            {
+                question: "What is a key characteristic of UDP?",
+                options: ["Connection-oriented", "Reliable", "Connectionless", "High overhead"],
+                answer: "Connectionless",
+                explanation: "UDP is connectionless, meaning it sends messages without establishing a connection, leading to lower overhead but no guarantee of delivery."
+            },
+            {
+                question: "What layer does CoAP operate in the IoT protocol stack?",
+                options: ["Physical Layer", "Link Layer", "Network Layer", "Application Layer"],
+                answer: "Application Layer",
+                explanation: "CoAP operates at the Application Layer in the IoT protocol stack, designed to enable communication between devices in constrained environments."
+            },
+            {
+                question: "Which layer is responsible for compressing and fragmenting IPv6 packets in IoT?",
+                options: ["Application Layer", "Transport Layer", "6LoWPAN Adaptation Layer", "Network Layer"],
+                answer: "6LoWPAN Adaptation Layer",
+                explanation: "The 6LoWPAN Adaptation Layer is responsible for compressing and fragmenting IPv6 packets to make them suitable for transmission in low-power wireless networks."
+            },
+            {
+                question: "What is the minimum MTU size for IPv6?",
+                options: ["576 bytes", "127 bytes", "1280 bytes", "250 bytes"],
+                answer: "1280 bytes",
+                explanation: "The minimum Maximum Transmission Unit (MTU) size for IPv6 is 1280 bytes, ensuring that networks can handle packets of this size without fragmentation."
+            },
+            {
+                question: "Why is IPv6 preferred in IoT networks?",
+                options: ["Larger header size", "Smaller address space", "Supports a vast number of devices", "Incompatibility with 6LoWPAN"],
+                answer: "Supports a vast number of devices",
+                explanation: "IPv6 supports a vast number of devices due to its large address space, allowing for unique addresses for a huge number of IoT devices."
+            },
+            {
+                question: "What is a primary function of the Link Layer in the IoT stack?",
+                options: ["Data presentation", "Routing", "Sharing medium and sending communications", "Security management"],
+                answer: "Sharing medium and sending communications",
+                explanation: "The Link Layer in the IoT protocol stack is responsible for sharing the medium and transmitting data between devices."
+            },
+            {
+                question: "Which IEEE standard is used for Ethernet?",
+                options: ["IEEE 802.3", "IEEE 802.11", "IEEE 802.15.4", "IEEE 802.15.1"],
+                answer: "IEEE 802.3",
+                explanation: "IEEE 802.3 is the standard used for Ethernet, a widely used networking protocol in both wired and wireless communication."
+            },
+            {
+                question: "What is the main feature of route-over routing in IoT?",
+                options: ["Uses the link layer for forwarding data", "Uses the network layer for routing", "Suitable for smaller local networks", "Considered to be one IP subnet"],
+                answer: "Uses the network layer for routing",
+                explanation: "Route-over routing in IoT uses the network layer for making routing decisions, unlike mesh-under routing, which uses the link layer."
+            },
+            {
+                question: "What type of traffic does RPL support?",
+                options: ["Unicast only", "Multicast only", "Broadcast only", "Multipoint-to-point and point-to-multipoint"],
+                answer: "Multipoint-to-point and point-to-multipoint",
+                explanation: "RPL supports various types of traffic patterns, including multipoint-to-point and point-to-multipoint, which are common in IoT networks."
+            },
+            {
+                question: "What does the 6LoWPAN Adaptation Layer do with IPv6 packets?",
+                options: ["Encrypts them", "Compresses and fragments them", "Converts them to IPv4", "Expands their size"],
+                answer: "Compresses and fragments them",
+                explanation: "The 6LoWPAN Adaptation Layer compresses and fragments IPv6 packets to make them suitable for transmission over low-power wireless networks."
+            },
+            {
+                question: "What additional header is used in 6LoWPAN for packet reassembly?",
+                options: ["IPHC Header", "Fragment Header", "UDP Header", "TCP Header"],
+                answer: "Fragment Header",
+                explanation: "6LoWPAN uses a Fragment Header to reassemble fragmented IPv6 packets after they have been transmitted."
+            },
+            {
+                question: "What is the focus of IEEE 802.15.4 standard?",
+                options: ["High-speed data transfer", "Long-range communication", "Low power, low bandwidth communication", "High memory usage devices"],
+                answer: "Low power, low bandwidth communication",
+                explanation: "IEEE 802.15.4 is focused on low-power, low-bandwidth communication, which is ideal for IoT devices and networks."
+            },
+            {
+                question: "Which IEEE standard is used for Bluetooth?",
+                options: ["IEEE 802.15.4", "IEEE 802.11", "IEEE 802.15.1", "IEEE 802.3"],
+                answer: "IEEE 802.15.1",
+                explanation: "IEEE 802.15.1 is the standard used for Bluetooth communication, enabling short-range wireless communication between devices."
+            },
+            {
+                question: "What is a major security challenge in 6LoWPAN implementation?",
+                options: ["Large packet sizes", "High power consumption", "Susceptibility to packet fragmentation attacks", "High cost"],
+                answer: "Susceptibility to packet fragmentation attacks",
+                explanation: "6LoWPAN's use of packet fragmentation makes it vulnerable to packet fragmentation attacks, where attackers can exploit the fragmentation process."
+            },
+            {
+                question: "Which layer is responsible for security in IoT protocol stack?",
+                options: ["Physical Layer", "Link Layer", "Network Layer", "Application Layer"],
+                answer: "Network Layer",
+                explanation: "The network layer is responsible for key aspects of security in IoT, such as ensuring data integrity and confidentiality through encryption and other mechanisms."
+            },
+            {
+                question: "What is mesh-under routing in IoT?",
+                options: ["Routing at the network layer", "Routing at the link layer", "Routing at the application layer", "Routing at the transport layer"],
+                answer: "Routing at the link layer",
+                explanation: "Mesh-under routing involves routing at the link layer, where data is forwarded over the link layer of the network."
+            },
+            {
+                question: "Which is better suited for smaller and local networks, mesh-under or route-over?",
+                options: ["Mesh-under", "Route-over", "Both", "Neither"],
+                answer: "Mesh-under",
+                explanation: "Mesh-under routing is better suited for smaller and local networks as it uses the link layer for routing and is ideal for low-power, constrained environments."
+            },
+            {
+                question: "What is a key feature of RPL related to energy?",
+                options: ["High power consumption", "Energy-efficient routing", "Energy-intensive topology changes", "No energy management"],
+                answer: "Energy-efficient routing",
+                explanation: "RPL (Routing Protocol for Low-Power and Lossy Networks) is designed to be energy-efficient by minimizing energy usage during data transmission."
+            },
+            {
+                question: "Why is energy efficiency important in IoT?",
+                options: ["To increase bandwidth", "To prolong battery life of devices", "To enhance security", "To reduce latency"],
+                answer: "To prolong battery life of devices",
+                explanation: "Energy efficiency is crucial in IoT to extend the battery life of devices, especially in remote locations where battery replacements are difficult."
+            },
+            {
+                question: "What does 6LoWPAN use to reduce the size of IPv6 packets?",
+                options: ["Encryption", "Header compression", "Header expansion", "Fragmentation only"],
+                answer: "Header compression",
+                explanation: "6LoWPAN uses header compression to reduce the size of IPv6 packets, making them more suitable for transmission over low-power wireless networks."
+            },
+            {
+                question: "Which field does 6LoWPAN assume common usage of to compress IPv6 headers?",
+                options: ["Unique fields", "Optional fields", "Common fields", "Mandatory fields"],
+                answer: "Common fields",
+                explanation: "6LoWPAN assumes common usage of specific fields for compressing IPv6 headers, ensuring efficient transmission in low-power networks."
+            },
+            {
+                question: "How does 6LoWPAN handle large IPv6 packets?",
+                options: ["Drops them", "Expands them", "Fragments and reassembles them", "Encrypts them"],
+                answer: "Fragments and reassembles them",
+                explanation: "6LoWPAN fragments large IPv6 packets into smaller packets that fit into the 802.15.4 frames and reassembles them at the destination."
+            },
+            {
+                question: "What happens to the additional fragment header after reassembly in 6LoWPAN?",
+                options: ["It is kept", "It is discarded", "It is expanded", "It is compressed"],
+                answer: "It is discarded",
+                explanation: "After reassembling fragmented IPv6 packets, the fragment header is discarded as it is no longer needed."
+            },
+            {
+                question: "What role does the 6LoWPAN Edge Router play?",
+                options: ["Only local data exchange", "Data exchange between 6LoWPAN devices and the Internet", "Provides power to devices", "Manages security keys"],
+                answer: "Data exchange between 6LoWPAN devices and the Internet",
+                explanation: "The 6LoWPAN Edge Router is responsible for exchanging data between 6LoWPAN devices and the wider Internet, enabling communication across networks."
+            },
+            {
+                question: "Which layers does the Dual Stack in the Edge Router support?",
+                options: ["Only IPv6", "Only 6LoWPAN", "Both IPv6 and 6LoWPAN", "Only IPv4"],
+                answer: "Both IPv6 and 6LoWPAN",
+                explanation: "The Dual Stack in the 6LoWPAN Edge Router supports both IPv6 and 6LoWPAN, enabling communication across diverse networks."
+            },
+            {
+                question: "What is an advantage of 6LoWPAN?",
+                options: ["High power consumption", "High latency", "End-to-end IP addressable nodes", "Proprietary protocols"],
+                answer: "End-to-end IP addressable nodes",
+                explanation: "An advantage of 6LoWPAN is its ability to support end-to-end IP addressable nodes, allowing devices to communicate directly with each other using IPv6."
+            },
+            {
+                question: "What type of routing does 6LoWPAN support?",
+                options: ["One-to-one routing only", "One-to-many & many-to-one routing", "One-to-all routing", "Only broadcast routing"],
+                answer: "One-to-many & many-to-one routing",
+                explanation: "6LoWPAN supports one-to-many and many-to-one routing, enabling efficient communication in low-power IoT networks."
+            },
+            {
+                question: "What does MAC stand for in the context of IEEE 802.15.4?",
+                options: ["Media Access Control", "Memory Access Control", "Media Application Control", "Memory Application Control"],
+                answer: "Media Access Control",
+                explanation: "In IEEE 802.15.4, MAC stands for Media Access Control, which is responsible for controlling access to the physical medium for communication."
+            },
+            {
+                question: "Which protocol is unreliable and connectionless?",
+                options: ["TCP", "UDP", "HTTP", "CoAP"],
+                answer: "UDP",
+                explanation: "UDP (User Datagram Protocol) is an unreliable, connectionless protocol used in IoT for low-latency applications where reliability is not critical."
+            },
+            {
+                question: "What specific security mechanisms are currently adopted for 6LoWPAN?",
+                options: ["AES encryption", "None specific", "RSA encryption", "TLS encryption"],
+                answer: "AES encryption",
+                explanation: "6LoWPAN uses AES (Advanced Encryption Standard) encryption to secure data transmitted in low-power wireless networks."
+            },
+            {
+                question: "What type of attack is 6LoWPAN susceptible to?",
+                options: ["DOS attack", "Packet fragmentation attack", "Phishing attack", "Malware attack"],
+                answer: "Packet fragmentation attack",
+                explanation: "6LoWPAN is susceptible to packet fragmentation attacks, where attackers exploit the fragmentation process to manipulate or drop packets."
+            },
+            {
+                question: "Which protocol is connection-oriented and reliable?",
+                options: ["UDP", "CoAP", "TCP", "IPv6"],
+                answer: "TCP",
+                explanation: "TCP (Transmission Control Protocol) is a connection-oriented and reliable protocol used for ensuring data integrity and delivery."
+            },
+            {
+                question: "Which protocol provides communication services directly to the application layer in IoT?",
+                options: ["HTTP", "CoAP", "UDP", "TCP"],
+                answer: "CoAP",
+                explanation: "CoAP (Constrained Application Protocol) is an application-layer protocol designed for IoT devices with limited resources."
+            },
+            {
+                question: "What is used to reassemble fragmented packets in 6LoWPAN?",
+                options: ["Encryption header", "Fragment header", "Compression header", "IPv6 header"],
+                answer: "Fragment header",
+                explanation: "6LoWPAN uses the Fragment header to reassemble fragmented IPv6 packets after they have been transmitted."
+            },
+            {
+                question: "Why does 6LoWPAN fragment IPv6 packets?",
+                options: ["To increase packet size", "To fit them into smaller 802.15.4 frames", "To enhance security", "To reduce latency"],
+                answer: "To fit them into smaller 802.15.4 frames",
+                explanation: "6LoWPAN fragments IPv6 packets to ensure that they fit into the smaller frames used by IEEE 802.15.4, which has a limited frame size."
+            },
+            {
+                question: "What is the key enabler of the IoT revolution according to the content?",
+                options: ["Wi-Fi", "6LoWPAN", "Ethernet", "Bluetooth"],
+                answer: "6LoWPAN",
+                explanation: "6LoWPAN is a key enabler of the IoT revolution as it allows IPv6 packets to be transmitted over low-power wireless networks, crucial for IoT communication."
+            },
+            {
+                question: "What does IPHC stand for in the context of 6LoWPAN?",
+                options: ["Internet Protocol Header Compression", "Internet Protocol Header Control", "Internet Protocol Header Configuration", "Internet Protocol Header Calculation"],
+                answer: "Internet Protocol Header Compression",
+                explanation: "IPHC (Internet Protocol Header Compression) is used in 6LoWPAN to reduce the size of IPv6 headers, enabling them to fit in the small frames of low-power wireless networks."
+            },
+            {
+                question: "Which layer in the IoT stack provides data formatting and presentation for web transfer?",
+                options: ["Physical Layer", "Link Layer", "Network Layer", "Application Layer"],
+                answer: "Application Layer",
+                explanation: "The Application Layer in the IoT stack handles data formatting and presentation, ensuring that the data can be transferred over the web."
+            },
+            {
+                question: "Which type of protocol is CoAP compared to in the content?",
+                options: ["HTTP", "FTP", "SMTP", "SNMP"],
+                answer: "HTTP",
+                explanation: "CoAP (Constrained Application Protocol) is compared to HTTP as a similar application-layer protocol but optimized for low-power IoT devices."
+            }
+            ],
+            quiz3: [
+            {
+                question: "What is the primary microcontroller used in the Arduino Uno?",
+                options: ["ATmega328P", "ATmega2560", "ATmega32U4", "ATtiny85"],
+                answer: "ATmega328P",
+                explanation: "The Arduino Uno is powered by the ATmega328P microcontroller, which is responsible for processing data and controlling peripherals."
+            },
+            {
+                question: "How many digital I/O pins are available on the Arduino Uno?",
+                options: ["10", "14", "16", "20"],
+                answer: "14",
+                explanation: "The Arduino Uno has 14 digital I/O pins that can be configured as either input or output."
+            },
+            {
+                question: "What is the function of the analog pins on the Arduino Uno?",
+                options: ["Output digital signals", "Read analog input values", "Control the power supply", "Connect to the USB port"],
+                answer: "Read analog input values",
+                explanation: "The analog pins on the Arduino Uno are used to read analog signals, which are continuous in nature."
+            },
+            {
+                question: "Which architecture does the ATmega328P microcontroller follow?",
+                options: ["ARM", "AVR", "x86", "MIPS"],
+                answer: "AVR",
+                explanation: "The ATmega328P microcontroller follows the AVR architecture, known for its efficiency and power-saving features."
+            },
+            {
+                question: "What is the clock speed of the Arduino Uno's ATmega328P microcontroller?",
+                options: ["1 MHz", "8 MHz", "16 MHz", "32 MHz"],
+                answer: "16 MHz",
+                explanation: "The Arduino Uno runs at a clock speed of 16 MHz, which determines how fast the microcontroller can execute instructions."
+            },
+            {
+                question: "How much Flash memory does the ATmega328P microcontroller have?",
+                options: ["8 KB", "32 KB", "64 KB", "128 KB"],
+                answer: "32 KB",
+                explanation: "The ATmega328P microcontroller in the Arduino Uno has 32 KB of Flash memory, which stores the program code."
+            },
+            {
+                question: "Which pin on the Arduino Uno is used for PWM output?",
+                options: ["Pin 10", "Pin 3", "Pin 5", "All of the above"],
+                answer: "All of the above",
+                explanation: "Pins 3, 5, 6, 9, 10, and 11 on the Arduino Uno can be used for PWM (Pulse Width Modulation) output."
+            },
+            {
+                question: "What is the purpose of the RESET pin on the Arduino Uno?",
+                options: ["To restart the microcontroller", "To enter programming mode", "To disconnect power", "To ground the circuit"],
+                answer: "To restart the microcontroller",
+                explanation: "The RESET pin on the Arduino Uno is used to restart the microcontroller, resetting the program execution."
+            },
+            {
+                question: "Which component on the Arduino Uno board regulates voltage?",
+                options: ["Voltage regulator", "Crystal oscillator", "LED", "Microcontroller"],
+                answer: "Voltage regulator",
+                explanation: "The voltage regulator on the Arduino Uno board ensures that the microcontroller and other components receive a stable voltage supply."
+            },
+            {
+                question: "What type of USB port is used on the Arduino Uno?",
+                options: ["USB-C", "USB-B", "USB-A", "Mini-USB"],
+                answer: "USB-B",
+                explanation: "The Arduino Uno uses a USB-B port to connect to a computer for programming and power supply."
+            },
+            {
+                question: "How many analog input pins are available on the Arduino Uno?",
+                options: ["4", "6", "8", "10"],
+                answer: "6",
+                explanation: "The Arduino Uno has 6 analog input pins, labeled A0 to A5, for reading analog signals."
+            },
+            {
+                question: "What is the function of the AREF pin on the Arduino Uno?",
+                options: ["To reset the microcontroller", "To power the board", "To provide a reference voltage for analog inputs", "To ground the circuit"],
+                answer: "To provide a reference voltage for analog inputs",
+                explanation: "The AREF pin is used to provide a reference voltage to the analog inputs, which can improve the accuracy of analog readings."
+            },
+            {
+                question: "What does the '328' in ATmega328P represent?",
+                options: ["The number of I/O pins", "The microcontroller model number", "The clock speed", "The amount of Flash memory"],
+                answer: "The microcontroller model number",
+                explanation: "The '328' in ATmega328P is part of the model number, identifying this specific microcontroller in the AVR family."
+            },
+            {
+                question: "Which software is primarily used to program the Arduino Uno?",
+                options: ["MPLAB IDE", "Code::Blocks", "Arduino IDE", "Eclipse"],
+                answer: "Arduino IDE",
+                explanation: "The Arduino IDE (Integrated Development Environment) is used to write, compile, and upload code to the Arduino Uno."
+            },
+            {
+                question: "What is the role of the bootloader on the Arduino Uno?",
+                options: ["To manage memory", "To protect the microcontroller", "To facilitate uploading programs to the microcontroller", "To increase clock speed"],
+                answer: "To facilitate uploading programs to the microcontroller",
+                explanation: "The bootloader allows the microcontroller to receive code from the Arduino IDE without needing an external programmer."
+            },
+            {
+                question: "Which of the following is true about the ATmega328P microcontroller's SRAM?",
+                options: ["It is non-volatile", "It stores the program code", "It temporarily stores variables during program execution", "It cannot be accessed by the microcontroller"],
+                answer: "It temporarily stores variables during program execution",
+                explanation: "SRAM is used to store variables and temporary data while a program is running."
+            },
+            {
+                question: "What voltage range is recommended for powering the Arduino Uno via the VIN pin?",
+                options: ["3.3V to 5V", "7V to 12V", "1.8V to 3.3V", "12V to 15V"],
+                answer: "7V to 12V",
+                explanation: "The VIN pin is typically used with a voltage range of 7V to 12V, which is then regulated to 5V by the onboard voltage regulator."
+            },
+            {
+                question: "What is the purpose of the crystal oscillator on the Arduino Uno?",
+                options: ["To power the microcontroller", "To provide a clock signal for the microcontroller", "To store program code", "To reset the microcontroller"],
+                answer: "To provide a clock signal for the microcontroller",
+                explanation: "The crystal oscillator generates a stable clock signal that controls the timing of the microcontroller’s operations."
+            },
+            {
+                question: "How is an LED connected to a digital pin on the Arduino Uno to turn it on?",
+                options: ["Anode to the pin, cathode to ground", "Cathode to the pin, anode to ground", "Both terminals to the pin", "Anode to ground, cathode to 5V"],
+                answer: "Anode to the pin, cathode to ground",
+                explanation: "The LED's anode (positive terminal) is connected to the digital pin, and the cathode (negative terminal) is connected to ground."
+            },
+            {
+                question: "Which command is used in the Arduino IDE to set a pin as an output?",
+                options: ["pinMode(pin, INPUT)", "pinMode(pin, OUTPUT)", "digitalWrite(pin, HIGH)", "digitalRead(pin)"],
+                answer: "pinMode(pin, OUTPUT)",
+                explanation: "The pinMode(pin, OUTPUT) command is used to configure a pin as an output in the Arduino IDE."
+            },
+            {
+                question: "What happens when digitalWrite(pin, HIGH) is executed on an output pin?",
+                options: ["The pin is set to 5V", "The pin is set to 0V", "The pin is configured as input", "The pin is disconnected"],
+                answer: "The pin is set to 5V",
+                explanation: "digitalWrite(pin, HIGH) sets the pin to a high state, which corresponds to 5V on the Arduino Uno."
+            },
+            {
+                question: "What is the maximum current that can be drawn from a single digital I/O pin on the Arduino Uno?",
+                options: ["10 mA", "20 mA", "40 mA", "80 mA"],
+                answer: "40 mA",
+                explanation: "Each digital I/O pin on the Arduino Uno can safely supply a maximum current of 40 mA."
+            },
+            {
+                question: "Which tool in the Arduino IDE is used to upload the code to the Arduino board?",
+                options: ["Serial Monitor", "Tools menu", "Upload button", "Serial Plotter"],
+                answer: "Upload button",
+                explanation: "The 'Upload' button in the Arduino IDE compiles the code and uploads it to the connected Arduino board."
+            },
+            {
+                question: "What is the function of the TX and RX LEDs on the Arduino Uno?",
+                options: ["Indicate data transmission and reception", "Indicate power status", "Indicate program status", "Indicate reset status"],
+                answer: "Indicate data transmission and reception",
+                explanation: "The TX (Transmit) and RX (Receive) LEDs blink when data is being sent or received via the serial interface."
+            },
+            {
+                question: "Which command is used to start serial communication in the Arduino IDE?",
+                options: ["Serial.read()", "Serial.write()", "Serial.begin(9600)", "Serial.print()"],
+                answer: "Serial.begin(9600)",
+                explanation: "Serial.begin(9600) initializes serial communication at a baud rate of 9600."
+            },
+            {
+                question: "What does the setup() function in Arduino code do?",
+                options: ["Loops continuously", "Runs once at the start", "Runs when a button is pressed", "Monitors serial data"],
+                answer: "Runs once at the start",
+                explanation: "The setup() function is executed once when the program starts and is used to initialize settings."
+            },
+            {
+                question: "What does the loop() function in Arduino code do?",
+                options: ["Repeats continuously", "Runs once at the start", "Runs when a sensor is triggered", "Ends the program"],
+                answer: "Repeats continuously",
+                explanation: "The loop() function runs repeatedly after setup() and is where the main code is placed."
+            },
+            {
+                question: "How can the Arduino Uno be powered other than via USB?",
+                options: ["Through the VIN pin", "Through the barrel jack", "Both a and b", "Neither a nor b"],
+                answer: "Both a and b",
+                explanation: "The Arduino Uno can be powered through the VIN pin or the barrel jack in addition to USB."
+            },
+            {
+                question: "What is the function of the onboard LED connected to pin 13?",
+                options: ["To indicate power status", "To show USB connection", "To provide a built-in LED for testing", "To display error codes"],
+                answer: "To provide a built-in LED for testing",
+                explanation: "The LED on pin 13 is a built-in feature used for quick testing and debugging."
+            },
+            {
+                question: "Which file extension is used for Arduino sketch files?",
+                options: [".txt", ".ino", ".cpp", ".hex"],
+                answer: ".ino",
+                explanation: "Arduino sketch files have the .ino extension and contain the code to be uploaded to the Arduino board."
+            },
+            {
+                question: "Which programming language is primarily used in Arduino IDE?",
+                options: ["Python", "C++", "Java", "HTML"],
+                answer: "C++",
+                explanation: "The Arduino IDE uses a simplified version of C++, which is the primary language for writing Arduino code."
+            },
+            {
+                question: "How many hardware timers does the ATmega328P microcontroller have?",
+                options: ["1", "2", "3", "4"],
+                answer: "3",
+                explanation: "The ATmega328P microcontroller has three hardware timers: Timer0, Timer1, and Timer2, used for time-related operations."
+            },
+            {
+                question: "What is the maximum input voltage the Arduino Uno’s analog pins can safely read?",
+                options: ["3.3V", "10V", "5V", "12V"],
+                answer: "5V",
+                explanation: "The analog pins on the Arduino Uno can safely read voltages up to 5V."
+            },
+            {
+                question: "What does PWM stand for in the context of Arduino?",
+                options: ["Power With Modulation", "Phase Waveform Modulation", "Pulse Width Modulation", "Positive Wave Measurement"],
+                answer: "Pulse Width Modulation",
+                explanation: "PWM stands for Pulse Width Modulation, a technique used to control the brightness of LEDs and the speed of motors by varying the duty cycle of a digital signal."
+            },
+            {
+                question: "Which component is used in the Arduino Uno to interface with the USB?",
+                options: ["ATmega328P", "ATmega16U2", "Voltage regulator", "Crystal oscillator"],
+                answer: "ATmega16U2",
+                explanation: "The ATmega16U2 microcontroller on the Arduino Uno handles USB communication, converting USB signals to serial communication for the ATmega328P."
+            },
+            {
+                question: "How is a new library included in an Arduino sketch?",
+                options: ["By using the #include directive", "By copying the library files to the sketch", "By importing via the IDE’s File menu", "By using the import keyword"],
+                answer: "By using the #include directive",
+                explanation: "Libraries are included in an Arduino sketch using the #include directive, which adds external code to your project."
+            },
+            {
+                question: "What is the main purpose of the Arduino bootloader?",
+                options: ["To enable programming via the USB without external hardware", "To manage power consumption", "To increase clock speed", "To handle serial communication"],
+                answer: "To enable programming via the USB without external hardware",
+                explanation: "The bootloader allows you to upload code to the Arduino via USB without needing an external programmer."
+            },
+            {
+                question: "What does the digitalRead(pin) function do in Arduino?",
+                options: ["Reads the value of a digital input pin", "Sets a digital pin to HIGH", "Configures a pin as input", "Sends data to the serial monitor"],
+                answer: "Reads the value of a digital input pin",
+                explanation: "digitalRead(pin) reads the current state (HIGH or LOW) of a specified digital input pin."
+            },
+            {
+                question: "Which command is used to delay the execution of code in Arduino?",
+                options: ["delay(ms)", "wait(ms)", "pause(ms)", "stop(ms)"],
+                answer: "delay(ms)",
+                explanation: "The delay(ms) function pauses the execution of the code for a specified number of milliseconds."
+            },
+            {
+                question: "In the Arduino IDE, what does the Serial Monitor do?",
+                options: ["Displays data sent from the Arduino to the computer", "Compiles the Arduino code", "Controls the power to the Arduino board", "Uploads code to the Arduino board"],
+                answer: "Displays data sent from the Arduino to the computer",
+                explanation: "The Serial Monitor is a tool in the Arduino IDE that allows you to view data sent from the Arduino to the computer over the serial interface."
+            }
+            ],
+            quiz4: [
+            {
+                question: "How can the ATmega328P microcontroller differentiate between analog and digital inputs on the Arduino Uno?",
+                options: ["Through dedicated analog and digital pins", "By using a voltage threshold", "By configuring the pins in the software using the pinMode() function", "Using the onboard ADC (Analog-to-Digital Converter)"],
+                answer: "By configuring the pins in the software using the pinMode() function",
+                explanation: "The ATmega328P differentiates between analog and digital inputs through software configuration using the pinMode() function."
+            },
+            {
+                question: "What happens if you exceed the maximum input voltage on a digital pin of the Arduino Uno?",
+                options: ["It may damage the pin or the microcontroller", "The pin will automatically reset", "The pin will ignore the excess voltage", "It will increase the output voltage"],
+                answer: "It may damage the pin or the microcontroller",
+                explanation: "Exceeding the maximum voltage (5V) on a digital pin can damage the pin or the entire microcontroller."
+            },
+            {
+                question: "What is the role of the EEPROM memory in the Arduino Uno?",
+                options: ["To temporarily store variables during execution", "To store data permanently even after power is lost", "To store the bootloader", "To manage USB communication"],
+                answer: "To store data permanently even after power is lost",
+                explanation: "EEPROM (Electrically Erasable Programmable Read-Only Memory) retains data even when the Arduino is powered off."
+            },
+            {
+                question: "How can you measure the resistance of a sensor using the Arduino Uno?",
+                options: ["Directly connect the sensor to an analog pin", "Create a voltage divider circuit with the sensor and measure the voltage across it", "Use a digital pin and measure the voltage", "Use a current sensor module"],
+                answer: "Create a voltage divider circuit with the sensor and measure the voltage across it",
+                explanation: "A voltage divider circuit allows you to measure the resistance of a sensor by reading the voltage drop across it."
+            },
+            {
+                question: "What is the significance of using a pull-up resistor on an input pin of the Arduino Uno?",
+                options: ["To prevent the input pin from floating and reading erroneous values", "To increase the pin’s voltage", "To lower the pin’s resistance", "To power external devices"],
+                answer: "To prevent the input pin from floating and reading erroneous values",
+                explanation: "A pull-up resistor ensures that an input pin reads a definite high value when not connected to any external circuitry."
+            },
+            {
+                question: "How can you safely interface a 12V relay with an Arduino Uno?",
+                options: ["Connect the relay directly to a digital pin", "Use a transistor as a switch to control the relay with the Arduino", "Connect the relay to an analog pin"],
+                answer: "Use a transistor as a switch to control the relay with the Arduino",
+                explanation: "A transistor can act as an intermediary switch, allowing the Arduino to control the higher voltage relay safely."
+            },
+            {
+                question: "Which communication protocol is not natively supported by the Arduino Uno’s ATmega328P microcontroller?",
+                options: ["UART", "CAN Bus", "I2C", "SPI"],
+                answer: "CAN Bus",
+                explanation: "The ATmega328P supports UART, I2C, and SPI, but not CAN Bus, which requires additional hardware."
+            },
+            {
+                question: "How can you increase the number of digital I/O pins on the Arduino Uno for a project?",
+                options: ["Use a shift register like the 74HC595", "Add an external power supply", "Use analog pins as digital pins", "Modify the microcontroller’s firmware"],
+                answer: "Use a shift register like the 74HC595",
+                explanation: "A shift register can expand the number of digital I/O pins by controlling multiple outputs with fewer pins."
+            },
+            {
+                question: "What is the purpose of the decoupling capacitors near the microcontroller on the Arduino Uno board?",
+                options: ["To filter out noise and stabilize the voltage supply", "To store charge for the microcontroller", "To increase the current supply", "To enable PWM output"],
+                answer: "To filter out noise and stabilize the voltage supply",
+                explanation: "Decoupling capacitors reduce noise and provide a stable voltage supply to the microcontroller, ensuring reliable operation."
+            },
+            {
+                question: "How can the Arduino Uno be used to generate a frequency signal?",
+                options: ["By using the analogWrite() function", "By using an external oscillator", "By configuring the Timer/Counter registers to generate PWM signals", "By rapidly toggling a digital pin using digitalWrite()"],
+                answer: "By configuring the Timer/Counter registers to generate PWM signals",
+                explanation: "The Timer/Counter registers can be configured to generate precise PWM signals at specific frequencies."
+            },
+            {
+                question: "What is the function of the Wire.begin() command in an Arduino sketch?",
+                options: ["To initiate I2C communication", "To start serial communication", "To enable SPI communication", "To reset the microcontroller"],
+                answer: "To initiate I2C communication",
+                explanation: "The Wire.begin() command initializes the I2C communication protocol, allowing the Arduino to communicate with I2C devices."
+            },
+            {
+                question: "How does the Arduino Uno handle multiple interrupts from different sources?",
+                options: ["By executing them simultaneously", "By handling them in the order they occur, prioritizing based on the vector table", "By ignoring lower priority interrupts", "By queuing them for later execution"],
+                answer: "By handling them in the order they occur, prioritizing based on the vector table",
+                explanation: "The ATmega328P handles interrupts based on priority, determined by the interrupt vector table."
+            },
+            {
+                question: "Which command would you use to read a sensor value connected to an analog pin in an Arduino sketch?",
+                options: ["analogRead(pin)", "digitalRead(pin)", "sensorRead(pin)", "analogWrite(pin)"],
+                answer: "analogRead(pin)",
+                explanation: "The analogRead(pin) function reads the value from an analog input pin, returning a value between 0 and 1023."
+            },
+            {
+                question: "What will happen if you connect an external power supply to the Arduino Uno and USB simultaneously?",
+                options: ["The board will draw power from both sources", "The Arduino Uno will automatically select the external power supply", "The Arduino Uno will only use the USB power", "The Arduino will reset"],
+                answer: "The Arduino Uno will automatically select the external power supply",
+                explanation: "The Arduino Uno is designed to automatically switch to the external power supply when both are connected."
+            },
+            {
+                question: "How can you achieve low power consumption in an Arduino Uno project?",
+                options: ["Increase the clock speed", "Use the sleep() function and reduce the clock speed", "Use digital pins instead of analog", "Add more sensors"],
+                answer: "Use the sleep() function and reduce the clock speed",
+                explanation: "Lowering the clock speed and using the sleep() function can significantly reduce power consumption in battery-powered projects."
+            },
+            {
+                question: "What is the maximum resolution of the PWM signal that the Arduino Uno can generate?",
+                options: ["4-bit", "6-bit", "8-bit", "10-bit"],
+                answer: "8-bit",
+                explanation: "The Arduino Uno generates PWM signals with an 8-bit resolution, meaning the duty cycle can be set between 0 and 255."
+            },
+            {
+                question: "Which command would you use to send data from the Arduino to a connected computer for debugging?",
+                options: ["Serial.read()", "Serial.print()", "Wire.write()", "Serial.begin()"],
+                answer: "Serial.print()",
+                explanation: "The Serial.print() command sends data from the Arduino to the Serial Monitor on the connected computer for debugging purposes."
+            },
+            {
+                question: "What is the significance of the Brown-out Detector (BOD) in the Arduino Uno?",
+                options: ["It monitors the temperature of the microcontroller", "It resets the microcontroller if the supply voltage drops below a certain level", "It manages power consumption", "It controls the clock speed"],
+                answer: "It resets the microcontroller if the supply voltage drops below a certain level",
+                explanation: "The Brown-out Detector prevents erratic behavior by resetting the microcontroller if the supply voltage falls below a safe threshold."
+            },
+            {
+                question: "How can you control the brightness of an LED connected to the Arduino Uno?",
+                options: ["By varying the voltage directly", "By using PWM with the analogWrite() function", "By adjusting the resistance in series with the LED", "By rapidly toggling the LED with digitalWrite()"],
+                answer: "By using PWM with the analogWrite() function",
+                explanation: "PWM allows you to control the brightness of an LED by adjusting the duty cycle of the signal sent to the pin."
+            },
+            {
+                question: "What is the function of the ICSP (In-Circuit Serial Programming) header on the Arduino Uno?",
+                options: ["To allow programming the microcontroller without removing it from the board", "To provide additional digital I/O pins", "To connect the Arduino to a computer", "To enable wireless communication"],
+                answer: "To allow programming the microcontroller without removing it from the board",
+                explanation: "The ICSP header provides a way to program the microcontroller directly, useful for uploading the bootloader or programming in-circuit."
+            },
+            {
+                question: "What is the function of the analog pins on the Arduino Uno?",
+                options: ["Output digital signals", "Read analog input values", "Control the power supply", "Connect to the USB port"],
+                answer: "Read analog input values",
+                explanation: "The analog pins on the Arduino Uno are used to read analog signals, which are continuous in nature."
+            },
+            {
+                question: "Which architecture does the ATmega328P microcontroller follow?",
+                options: ["ARM", "AVR", "x86", "MIPS"],
+                answer: "AVR",
+                explanation: "The ATmega328P microcontroller follows the AVR architecture, known for its efficiency and power-saving features."
+            },
+            {
+                question: "What is the clock speed of the Arduino Uno's ATmega328P microcontroller?",
+                options: ["1 MHz", "8 MHz", "16 MHz", "32 MHz"],
+                answer: "16 MHz",
+                explanation: "The Arduino Uno runs at a clock speed of 16 MHz, which determines how fast the microcontroller can execute instructions."
+            },
+            {
+                question: "How much Flash memory does the ATmega328P microcontroller have?",
+                options: ["8 KB", "32 KB", "64 KB", "128 KB"],
+                answer: "32 KB",
+                explanation: "The ATmega328P microcontroller in the Arduino Uno has 32 KB of Flash memory, which stores the program code."
+            },
+            {
+                question: "What is the purpose of the RESET pin on the Arduino Uno?",
+                options: ["To restart the microcontroller", "To enter programming mode", "To disconnect power", "To ground the circuit"],
+                answer: "To restart the microcontroller",
+                explanation: "The RESET pin on the Arduino Uno is used to restart the microcontroller, resetting the program execution."
+            },
+            {
+                question: "Which component on the Arduino Uno board regulates voltage?",
+                options: ["Voltage regulator", "Crystal oscillator", "LED", "Microcontroller"],
+                answer: "Voltage regulator",
+                explanation: "The voltage regulator on the Arduino Uno board ensures that the microcontroller and other components receive a stable voltage supply."
+            },
+            {
+                question: "What type of USB port is used on the Arduino Uno?",
+                options: ["USB-C", "USB-B", "USB-A", "Mini-USB"],
+                answer: "USB-B",
+                explanation: "The Arduino Uno uses a USB-B port to connect to a computer for programming and power supply."
+            },
+            {
+                question: "How many analog input pins are available on the Arduino Uno?",
+                options: ["4", "6", "8", "10"],
+                answer: "6",
+                explanation: "The Arduino Uno has 6 analog input pins, labeled A0 to A5, for reading analog signals."
+            },
+            {
+                question: "What is the function of the AREF pin on the Arduino Uno?",
+                options: ["To reset the microcontroller", "To power the board", "To provide a reference voltage for analog inputs", "To ground the circuit"],
+                answer: "To provide a reference voltage for analog inputs",
+                explanation: "The AREF pin is used to provide a reference voltage to the analog inputs, which can improve the accuracy of analog readings."
+            },
+            {
+                question: "What does the '328' in ATmega328P represent?",
+                options: ["The number of I/O pins", "The microcontroller model number", "The clock speed", "The amount of Flash memory"],
+                answer: "The microcontroller model number",
+                explanation: "The '328' in ATmega328P is part of the model number, identifying this specific microcontroller in the AVR family."
+            },
+            {
+                question: "Which software is primarily used to program the Arduino Uno?",
+                options: ["MPLAB IDE", "Code::Blocks", "Arduino IDE", "Eclipse"],
+                answer: "Arduino IDE",
+                explanation: "The Arduino IDE (Integrated Development Environment) is used to write, compile, and upload code to the Arduino Uno."
+            },
+            {
+                question: "What is the role of the bootloader on the Arduino Uno?",
+                options: ["To manage memory", "To protect the microcontroller", "To facilitate uploading programs to the microcontroller", "To increase clock speed"],
+                answer: "To facilitate uploading programs to the microcontroller",
+                explanation: "The bootloader allows the microcontroller to receive code from the Arduino IDE without needing an external programmer."
+            },
+            {
+                question: "Which of the following is true about the ATmega328P microcontroller's SRAM?",
+                options: ["It is non-volatile", "It stores the program code", "It temporarily stores variables during program execution", "It cannot be accessed by the microcontroller"],
+                answer: "It temporarily stores variables during program execution",
+                explanation: "SRAM is used to store variables and temporary data while a program is running."
+            },
+            {
+                question: "What voltage range is recommended for powering the Arduino Uno via the VIN pin?",
+                options: ["3.3V to 5V", "7V to 12V", "1.8V to 3.3V", "12V to 15V"],
+                answer: "7V to 12V",
+                explanation: "The VIN pin is typically used with a voltage range of 7V to 12V, which is then regulated to 5V by the onboard voltage regulator."
+            },
+            {
+                question: "What is the purpose of the crystal oscillator on the Arduino Uno?",
+                options: ["To power the microcontroller", "To provide a clock signal for the microcontroller", "To store program code", "To reset the microcontroller"],
+                answer: "To provide a clock signal for the microcontroller",
+                explanation: "The crystal oscillator generates a stable clock signal that controls the timing of the microcontroller’s operations."
+            },
+            {
+                question: "How is an LED connected to a digital pin on the Arduino Uno to turn it on?",
+                options: ["Anode to the pin, cathode to ground", "Cathode to the pin, anode to ground", "Both terminals to the pin", "Anode to ground, cathode to 5V"],
+                answer: "Anode to the pin, cathode to ground",
+                explanation: "The anode (positive terminal) of the LED is connected to the digital pin, and the cathode (negative terminal) is connected to ground."
+            },
+            {
+                question: "Which command is used in the Arduino IDE to set a pin as an output?",
+                options: ["pinMode(pin, INPUT)", "pinMode(pin, OUTPUT)", "digitalWrite(pin, HIGH)", "digitalRead(pin)"],
+                answer: "pinMode(pin, OUTPUT)",
+                explanation: "The pinMode(pin, OUTPUT) command is used to configure a pin as an output in the Arduino IDE."
+            },
+            {
+                question: "What happens when digitalWrite(pin, HIGH) is executed on an output pin?",
+                options: ["The pin is set to 5V", "The pin is set to 0V", "The pin is configured as input", "The pin is disconnected"],
+                answer: "The pin is set to 5V",
+                explanation: "digitalWrite(pin, HIGH) sets the pin to a high state, which corresponds to 5V on the Arduino Uno."
+            },
+            {
+                question: "What is the maximum current that can be drawn from a single digital I/O pin on the Arduino Uno?",
+                options: ["10 mA", "20 mA", "40 mA", "80 mA"],
+                answer: "40 mA",
+                explanation: "Each digital I/O pin on the Arduino Uno can safely supply a maximum current of 40 mA."
+            },
+            {
+                question: "Which tool in the Arduino IDE is used to upload the code to the Arduino board?",
+                options: ["Serial Monitor", "Tools menu", "Upload button", "Serial Plotter"],
+                answer: "Upload button",
+                explanation: "The 'Upload' button in the Arduino IDE compiles the code and uploads it to the connected Arduino board."
+            },
+            {
+                question: "What is the function of the TX and RX LEDs on the Arduino Uno?",
+                options: ["Indicate data transmission and reception", "Indicate power status", "Indicate program status", "Indicate reset status"],
+                answer: "Indicate data transmission and reception",
+                explanation: "The TX (Transmit) and RX (Receive) LEDs blink when data is being sent or received via the serial interface."
+            },
+            {
+                question: "Which command is used to start serial communication in the Arduino IDE?",
+                options: ["Serial.read()", "Serial.write()", "Serial.begin(9600)", "Serial.print()"],
+                answer: "Serial.begin(9600)",
+                explanation: "Serial.begin(9600) initializes serial communication at a baud rate of 9600."
+            },
+            {
+                question: "What does the setup() function in Arduino code do?",
+                options: ["Loops continuously", "Runs once at the start", "Runs when a button is pressed", "Monitors serial data"],
+                answer: "Runs once at the start",
+                explanation: "The setup() function is executed once when the program starts and is used to initialize settings."
+            },
+            {
+                question: "What does the loop() function in Arduino code do?",
+                options: ["Repeats continuously", "Runs once at the start", "Runs when a sensor is triggered", "Ends the program"],
+                answer: "Repeats continuously",
+                explanation: "The loop() function runs repeatedly after setup() and is where the main code is placed."
+            },
+            {
+                question: "How can the Arduino Uno be powered other than via USB?",
+                options: ["Through the VIN pin", "Through the barrel jack", "Both a and b", "Neither a nor b"],
+                answer: "Both a and b",
+                explanation: "The Arduino Uno can be powered through the VIN pin or the barrel jack in addition to USB."
+            },
+            {
+                question: "What is the function of the onboard LED connected to pin 13?",
+                options: ["To indicate power status", "To show USB connection", "To provide a built-in LED for testing", "To display error codes"],
+                answer: "To provide a built-in LED for testing",
+                explanation: "The LED on pin 13 is a built-in feature used for quick testing and debugging."
+            },
+            {
+                question: "Which file extension is used for Arduino sketch files?",
+                options: [".txt", ".ino", ".cpp", ".hex"],
+                answer: ".ino",
+                explanation: "Arduino sketch files have the .ino extension and contain the code to be uploaded to the Arduino board."
+            },
+            {
+                question: "How many hardware timers does the ATmega328P microcontroller have?",
+                options: ["1", "2", "3", "4"],
+                answer: "3",
+                explanation: "The ATmega328P microcontroller has three hardware timers: Timer0, Timer1, and Timer2, used for time-related operations."
+            },
+            {
+                question: "What is the main purpose of the Arduino bootloader?",
+                options: ["To enable programming via the USB without external hardware", "To manage power consumption", "To increase clock speed", "To handle serial communication"],
+                answer: "To enable programming via the USB without external hardware",
+                explanation: "The bootloader allows you to upload code to the Arduino via USB without needing an external programmer."
+            },
+            {
+                question: "What does the digitalRead(pin) function do in Arduino?",
+                options: ["Reads the value of a digital input pin", "Sets a digital pin to HIGH", "Configures a pin as input", "Sends data to the serial monitor"],
+                answer: "Reads the value of a digital input pin",
+                explanation: "digitalRead(pin) reads the current state (HIGH or LOW) of a specified digital input pin."
+            },
+            {
+                question: "In the Arduino IDE, what does the Serial Monitor do?",
+                options: ["Displays data sent from the Arduino to the computer", "Compiles the Arduino code", "Controls the power to the Arduino board", "Uploads code to the Arduino board"],
+                answer: "Displays data sent from the Arduino to the computer",
+                explanation: "The Serial Monitor is a tool in the Arduino IDE that allows you to view data sent from the Arduino to the computer over the serial interface."
+            }
+            ],
+            nptel: [
+            {
+                question: "Arduino IDE consists of 2 functions. What are they?",
+                options: ["Loop(), build() and setup()", "Build() and loop()", "Setup() and build()", "Setup() and loop()"],
+                answer: "Setup() and loop()",
+                explanation: "Arduino IDE consists of two primary functions: setup() and loop(). The setup() function runs once at the start, while the loop() function runs repeatedly after setup()."
+            },
+            {
+                question: "Arduino Uno board has digital pins?",
+                options: ["14", "12", "16", "20"],
+                answer: "14",
+                explanation: "The Arduino Uno board has 14 digital I/O pins that can be used for input or output."
+            },
+            {
+                question: "How many pins are present in the IR Sensor?",
+                options: ["1", "3", "2", "4"],
+                answer: "3",
+                explanation: "An IR sensor typically has 3 pins: VCC, Ground, and Output."
+            },
+            {
+                question: "How much Program Memory does the Arduino UNO have?",
+                options: ["24K bytes", "256K bytes", "32K bytes", "2K bytes"],
+                answer: "32K bytes",
+                explanation: "The Arduino UNO has 32KB of Flash memory for program storage."
+            },
+            {
+                question: "How many pins does the temperature sensor have?",
+                options: ["5 legs", "2 legs", "4 legs", "3 legs"],
+                answer: "3 legs",
+                explanation: "Most common temperature sensors, like the LM35, have 3 pins: VCC, Ground, and Output."
+            },
+            {
+                question: "The function which repeatedly executes in the main program?",
+                options: ["Setup", "Loop", "While", "None of These"],
+                answer: "Loop",
+                explanation: "The loop() function runs repeatedly after setup(), and is where the main code is placed in an Arduino sketch."
+            },
+            {
+                question: "What is ESP8266?",
+                options: ["WIFI module", "Sensor", "Board", "USB cable"],
+                answer: "WIFI module",
+                explanation: "The ESP8266 is a popular Wi-Fi module used to add wireless connectivity to projects."
+            },
+            {
+                question: "What is a gateway in IoT?",
+                options: ["A device that connects IoT devices to the internet", "A device that stores data collected by IoT devices", "A device that analyzes data collected by IoT devices", "A device that provides a user interface for IoT devices"],
+                answer: "A device that connects IoT devices to the internet",
+                explanation: "A gateway is a device that serves as an interface between IoT devices and the internet."
+            },
+            {
+                question: "What is a sensor in IoT?",
+                options: ["A device that converts physical or environmental parameters into digital signals", "A device that connects to the internet and sends data", "A device that provides a graphical user interface", "A device that runs software programs"],
+                answer: "A device that converts physical or environmental parameters into digital signals",
+                explanation: "A sensor is a device used to measure environmental or physical parameters such as temperature, pressure, or light and converts them into digital signals."
+            },
+            {
+                question: "What is the full form of EEPROM?",
+                options: ["Electrically Erasable Programmable Read Only Memory", "Electrically Encoded Programmable Read Only Memory", "Electronic Embedded Programmable Read Only Memory", "Encrypted Electronic Programmable Read Only Memory"],
+                answer: "Electrically Erasable Programmable Read Only Memory",
+                explanation: "EEPROM stands for Electrically Erasable Programmable Read Only Memory, and it is used to store data that persists even when power is off."
+            },
+            {
+                question: "What is the full form of IDE in Arduino IDE IoT software?",
+                options: ["Intra Defence Environment", "Intra Development Environment", "Integrated Development Environment", "Integrated Deployed Environment"],
+                answer: "Integrated Development Environment",
+                explanation: "IDE stands for Integrated Development Environment, which is the software used to write, compile, and upload code to the Arduino board."
+            },
+            {
+                question: "What is the full form of the LDR Sensor?",
+                options: ["Lithium Diode Resistor", "Light Diaphragm Resistor", "Lithium Disk Resistor", "Light Dependent Resistor"],
+                answer: "Light Dependent Resistor",
+                explanation: "The LDR (Light Dependent Resistor) is a sensor used to detect the intensity of light."
+            },
+            {
+                question: "What is the microcontroller used in Arduino UNO?",
+                options: ["ATmega32114", "AT91SAM3x8E", "ATmega2560", "ATmega328p"],
+                answer: "ATmega328p",
+                explanation: "The Arduino UNO uses the ATmega328p microcontroller, a popular choice for microcontroller-based projects."
+            },
+            {
+                question: "What is the operating frequency of the Arduino UNO Board?",
+                options: ["20 MHz", "16 Mhz", "6 MHz", "10 MHz"],
+                answer: "16 Mhz",
+                explanation: "The Arduino UNO operates at a clock frequency of 16 MHz, which determines the speed of execution of the microcontroller."
+            },
+            {
+                question: "What is the output of Arduino code? `void setup(){ Serial.begin(9600); } void loop() { Serial.write(40); }`",
+                options: ["Send a signal to pin 40 on the Arduino board", "Send an octal number of 40 through the Serial pins", "Send a byte with value 40 through the Serial pins", "Send a hexadecimal number of 40 through the Serial pins"],
+                answer: "Send a byte with value 40 through the Serial pins",
+                explanation: "The Serial.write() function sends the byte 40 (in decimal) through the serial pins."
+            },
+            {
+                question: "What is the standard form of RFID?",
+                options: ["Radio Frequency Identification", "Radio Waves Frequency Identification", "Radio Frequency InterDependent", "Radio Wave Frequency Independent"],
+                answer: "Radio Frequency Identification",
+                explanation: "RFID stands for Radio Frequency Identification, a technology used for automatic identification of objects."
+            },
+            {
+                question: "What is the use of the ESP8266 WiFi Module?",
+                options: ["Network Provider", "Switches circuits", "Evaluates air pressure", "Monitors Motion"],
+                answer: "Network Provider",
+                explanation: "The ESP8266 WiFi module is used to provide Wi-Fi connectivity for IoT projects."
+            },
+            {
+                question: "What is the use of the LDR Sensor?",
+                options: ["Monitors Motion", "Monitors air pressure", "Monitors Light Intensity", "Monitors heartbeat"],
+                answer: "Monitors Light Intensity",
+                explanation: "The LDR sensor is used to detect the intensity of light, adjusting its resistance accordingly."
+            },
+            {
+                question: "What kind of waves does the IR Sensor work on?",
+                options: ["Infrared", "Indigo", "Ultrasonic", "Infrasonic"],
+                answer: "Infrared",
+                explanation: "The IR (Infrared) sensor works by detecting infrared light waves, used in applications like remote control and proximity detection."
+            },
+            {
+                question: "What will happen if we supply a voltage of 25V to the Vcc of the IR sensor?",
+                options: ["Damage is caused", "Sensor will work fine", "Sensor will not respond for the time the voltage is applied", "Sensor will function normally"],
+                answer: "Damage is caused",
+                explanation: "Supplying a voltage higher than the specified operating voltage can cause damage to the sensor."
+            },
+            {
+                question: "What does GPIO stand for?",
+                options: ["General-Purpose Input/Output", "General-Purpose Inner/Outer", "Both A & B", "None of the Above"],
+                answer: "General-Purpose Input/Output",
+                explanation: "GPIO stands for General-Purpose Input/Output, which is used to interface external devices with microcontrollers."
+            },
+            {
+                question: "When was the actual term 'Internet of Things' coined?",
+                options: ["1998", "1999", "2000", "2002"],
+                answer: "1999",
+                explanation: "The term 'Internet of Things' was coined by Kevin Ashton in 1999."
+            },
+            {
+                question: "Which Arduino Boards use the Atmega328?",
+                options: ["Arduino Uno", "Arduino Mega", "Arduino Fio", "Arduino Due"],
+                answer: "Arduino Uno",
+                explanation: "The Arduino Uno uses the ATmega328 microcontroller, which is a popular microcontroller for many Arduino boards."
+            },
+            {
+                question: "Which library is used to access I2C in Arduino IoT devices?",
+                options: ["EEPROM", "Wire", "DHT11", "ArduinoJson"],
+                answer: "Wire",
+                explanation: "The Wire library is used to communicate with I2C devices on Arduino."
+            },
+            {
+                question: "Which of the following is false about IoT devices?",
+                options: ["IoT devices use the internet for collecting and sharing data", "IoT devices need microcontrollers", "IoT devices use wireless technology", "IoT devices are completely safe"],
+                answer: "IoT devices are completely safe",
+                explanation: "While IoT devices are useful, they are not completely safe and require proper security measures."
+            },
+            {
+                question: "Which of the following is not an actuator in IoT?",
+                options: ["Stepper motor", "A fan", "An LED", "Arduino"],
+                answer: "Arduino",
+                explanation: "An actuator is a device used to cause physical movement, like a motor, while the Arduino is a microcontroller."
+            },
+            {
+                question: "Which of the following is not related to Arduino IDE IoT software?",
+                options: ["Serial monitor", "Verify", "Upload", "Terminate"],
+                answer: "Terminate",
+                explanation: "The 'Terminate' function is not a part of the Arduino IDE. It is a basic development environment with Verify, Upload, and Serial Monitor features."
+            },
+            {
+                question: "Which protocol is used to link all the devices in the IoT?",
+                options: ["TCP/IP", "Network", "UDP", "HTTP"],
+                answer: "TCP/IP",
+                explanation: "The TCP/IP protocol is used to link devices over a network, including the IoT."
+            },
+            {
+                question: "Who coined the term 'Internet of Things'?",
+                options: ["Kevin Ashton", "John Wright", "Edward Jameson", "George Garton"],
+                answer: "Kevin Ashton",
+                explanation: "Kevin Ashton coined the term 'Internet of Things' in 1999."
+            },
+            {
+                question: "Will CoAP connect to the internet?",
+                options: ["True", "False"],
+                answer: "True",
+                explanation: "CoAP (Constrained Application Protocol) is used to connect IoT devices to the internet for communication."
+            }
+            ]
+        };
+
+        let selectedQuiz = "";
+
+        // Toggle the sidebar menu visibility
+        function toggleMenu() {
+            const sidebar = document.getElementById("sidebar");
+            sidebar.classList.toggle("active");
+        }
+
+        function loadQuiz(quizName) {
+            selectedQuiz = quizName;
+            const quiz = quizzes[quizName];
+            const quizContent = document.getElementById('quiz-content');
+            const quizTitle = document.getElementById('quiz-title');
+            quizContent.innerHTML = '';
+            quizTitle.innerText = `${quizName.charAt(0).toUpperCase() + quizName.slice(1)}`;  // Update quiz name in main content
+            document.getElementById('submit').style.display = 'block';
+            document.getElementById('reset').style.display = 'block';
+            //document.getElementById('menu-toggle').style.display = 'none';  // Hide menu button once quiz is selected
+        
+            quiz.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('question');
+        
+                const questionText = document.createElement('h3');
+                questionText.innerText = `${index + 1}. ${q.question}`;
+                questionDiv.appendChild(questionText);
+        
+                const optionsDiv = document.createElement('div');
+                optionsDiv.classList.add('options');
+                q.options.forEach(option => {
+                    const label = document.createElement('label');
+                    label.innerHTML = `
+                        <input type="radio" name="question${index}" value="${option}">
+                        <span>${option}</span>
+                    `;
+                    optionsDiv.appendChild(label);
+        
+                    label.addEventListener('click', () => {
+                        Array.from(optionsDiv.children).forEach(l => l.classList.remove('selected'));
+                        label.classList.add('selected');
+                    });
+                });
+                questionDiv.appendChild(optionsDiv);
+                quizContent.appendChild(questionDiv);
+            });
+        }
+        
+
+        function submitQuiz() {
+            const answers = document.querySelectorAll('input[type="radio"]:checked');
+            const quiz = quizzes[selectedQuiz];
+            quiz.forEach((q, index) => {
+                const selected = Array.from(answers).find(
+                    answer => answer.name === `question${index}`
+                );
+                const optionsDiv = document.getElementById('quiz-content').children[index].querySelector('.options');
+                const questionDiv = document.getElementById('quiz-content').children[index];
+
+                if (selected) {
+                    const feedback = document.createElement('div');
+                    if (selected.value === q.answer) {
+                        feedback.classList.add('correct');
+                        feedback.innerHTML = q.explanation;
+                    } else {
+                        feedback.classList.add('wrong');
+                        feedback.innerHTML = `Wrong! Correct Answer: ${q.answer}. ${q.explanation}`;
+                    }
+                    optionsDiv.appendChild(feedback);
+                } else {
+                    const feedback = document.createElement('div');
+                    feedback.classList.add('wrong');
+                    feedback.innerHTML = `No answer selected! Correct Answer: ${q.answer}. ${q.explanation}`;
+                    optionsDiv.appendChild(feedback);
+                }
+            });
+        }
+
+        function resetQuiz() {
+            document.getElementById('quiz-content').innerHTML = '';
+            document.getElementById('submit').style.display = 'none';
+            document.getElementById('reset').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
